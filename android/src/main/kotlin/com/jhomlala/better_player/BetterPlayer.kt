@@ -404,8 +404,16 @@ internal class BetterPlayer(
         }
         val mediaItem = mediaItemBuilder.build()
         val drmSessionManagerProvider: DrmSessionManagerProvider = drmSessionManager?.let {
-            DrmSessionManagerProvider { it }
-        } ?: DrmSessionManagerProvider { DefaultDrmSessionManager.Builder().build() }
+            DrmSessionManagerProvider { mediaItem: MediaItem -> it }
+        } ?: run {
+            Log.w("BetterPlayer", "No DRM config found. Using default empty DRM session manager.")
+            val dummyCallback = LocalMediaDrmCallback(ByteArray(0))
+            val emptyDrmSessionManager = DefaultDrmSessionManager.Builder()
+                .setUuidAndExoMediaDrmProvider(C.WIDEVINE_UUID, FrameworkMediaDrm.DEFAULT_PROVIDER)
+                .build(dummyCallback)
+            DrmSessionManagerProvider { mediaItem: MediaItem -> emptyDrmSessionManager }
+        }
+
 
         return when (type) {
             C.TYPE_SS -> SsMediaSource.Factory(
