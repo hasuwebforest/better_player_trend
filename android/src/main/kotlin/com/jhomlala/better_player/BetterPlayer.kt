@@ -403,10 +403,10 @@ internal class BetterPlayer(
             mediaItemBuilder.setCustomCacheKey(cacheKey)
         }
         val mediaItem = mediaItemBuilder.build()
-        var drmSessionManagerProvider: DrmSessionManagerProvider? = null
-        drmSessionManager?.let { drmSessionManager ->
-            drmSessionManagerProvider = DrmSessionManagerProvider { drmSessionManager }
-        }
+        val drmSessionManagerProvider: DrmSessionManagerProvider = drmSessionManager?.let {
+            DrmSessionManagerProvider { it }
+        } ?: DrmSessionManagerProvider { DefaultDrmSessionManager.Builder().build() }
+
         return when (type) {
             C.TYPE_SS -> SsMediaSource.Factory(
                 DefaultSsChunkSource.Factory(mediaDataSourceFactory),
